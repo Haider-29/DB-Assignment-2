@@ -372,6 +372,7 @@ INSERT INTO works_on (modelNum, assigned_employee) VALUES
 ```
 
 ## Q3
+In order to find the planes which have never undergone maintenance, we left join planes with planeservice table and then see which records have a plane service registration of null to find all those planes with no maintainence on them ever
 ```
 SELECT a.RegNum, a.of_type
 FROM airplane a LEFT JOIN PLANE_SERVICE ps 
@@ -380,6 +381,7 @@ WHERE ps.Reg# IS NULL;
 ```
 ![Q3 Image](Q3.png)
 ## Q4
+In order to find all corporations with planes greater than capcity of 200, we join corporation, owner, airplane, and planetype table on their primary keys after which we put a condition of the capacity being greater than 200
 ```
 select CORPORATION.Name, CORPORATION.Address, CORPORATION.Phone, PLANE_TYPE.Model, PLANE_TYPE.Capacity
 from CORPORATION, airplane, OWNERs, PLANE_TYPE
@@ -388,6 +390,7 @@ and airplane.of_type = PLANE_TYPE.Model and PLANE_TYPE.Capacity > 200
 ```
 ![Q4 Image](Q4.png)
 ## Q5
+We simply use avg function on employee table where shift into is equal to night
 ```
 select avg(employee.salary) as 'Average Salary of Night Shift'
 from EMPLOYEE
@@ -395,6 +398,7 @@ where EMPLOYEE.ShiftInfo = 'Night'
 ```
 ![Q5 Image](Q5.png)
 ## Q6
+We use the top 5 function along with combining employee, person, and planeservice tables grouped by employee id and name and ordered by the sum of hours worked
 ```
 select top 5 EMPLOYEE.EID, person.FName, sum(PLANE_SERVICE.hours) as HoursWorked
 from EMPLOYEE, person, PLANE_SERVICE
@@ -404,6 +408,7 @@ order by sum(PLANE_SERVICE.hours) desc
 ```
 ![Q6 Image](Q6.png)
 ## Q7
+We combine the airplane, owner, and planeservice table and put a condition of the service date being within the last 7 days using the dateadd and getdate function
 ```
 select airplane.RegNum, owners.OWNERID, PLANE_SERVICE.dateofService
 from airplane, owners, PLANE_SERVICE
@@ -413,6 +418,7 @@ PLANE_SERVICE.dateofService > DATEADD(day,-7,GETDATE())
 ```
 ![Q7 Image](Q7.png)
 ## Q8
+This is a little tricky as we have to use case statements to either write corporation or person info depending on who the owner is. Rest is simple as we join their tables and just check purchase being within the last month again with dateadd and getdate
 ```
 SELECT 
     CASE
@@ -432,6 +438,7 @@ WHERE airplane.purchaseDate >= DATEADD(MONTH, -1, GETDATE());
 ```
 ![Q8 Image](Q8.png)
 ## Q9
+This is done by using the count function on the different plane models and then joining with pilot table in order to group by their information how many planes each pilot flies
 ```
 select pilot.PilotID, pilot.pilotssn, count(flies.model) as 'Num Airplanes Flown'
 from pilot inner join FLIES on PILOT.pilotssn = flies.pid
@@ -439,13 +446,16 @@ group by PILOT.PilotID, pilot.pilotssn
 ```
 ![Q9 Image](Q9.png)
 ## Q10
+We select the top 1 hangar from the hangar table ordered by its remaining capacity by counting the number of planes stored in the hangar, and then subtracting it from the total capacity of the airplane based on innder joins between hangar and airplane on the hangar number
 ```
-SELECT TOP 1 hangar.number, hangar.location, hangar.capacity
-FROM hangar
-ORDER BY hangar.capacity DESC;
+select top 1 hangar.location,hangar.capacity, hangar.capacity - count(airplane.stored_in) as 'Available Space'
+from hangar inner join airplane on hangar.number = airplane.stored_in
+group by hangar.location, hangar.capacity
+order by [Available Space] desc
 ```
 ![Q10 Image](Q10.png)
 ## Q11
+Join corporation table with airplane and then count the number of airplanes which are owned grouped by the corporation info in order to find how many each corporation has
 ```
 select CORPORATION.name, CORPORATION.Address, CORPORATION.Phone, count(airplane.owned_by) as 'Planes Owned'
 from CORPORATION inner join OWNERs on CORPORATION.Name = OWNERs.corporationID 
@@ -454,6 +464,7 @@ group by CORPORATION.name, CORPORATION.Address, CORPORATION.Phone
 ```
 ![Q11 Image](Q11.png)
 ## Q12
+In order to find average number of maintenance hours per plane type, we select avg of the hours from the airoplane and plane service table joined and then group by the type of airplane
 ```
 select airplane.of_type, avg(PLANE_SERVICE.hours) as 'Average Hours of Maintainence'
 from airplane inner join PLANE_SERVICE on PLANE_SERVICE.Reg# = airplane.RegNum
@@ -461,6 +472,7 @@ group by airplane.of_type
 ```
 ![Q12 Image](Q12.png)
 ## Q13
+This one was tricky too. We use case to make sure we write correct corporation/person name and ten left join person and corporation to make sure we get all values of table and they are not omitted (as in owner table one field will always be null of person or coporation, depending on flag). The rest are inners joins and finally our condition is to check the non existance of the employee in the works on table for that specific plane.
 ```
 SELECT DISTINCT
     CASE
@@ -482,6 +494,7 @@ WHERE NOT EXISTS (
 ```
 ![Q13 Image](Q13.png)
 ## Q14
+This question was worded a bit oddly, but I implemented this by using a plethora of jjoins which are repeated as well. So there are two airplane table joins (one for person and one for corporation etc). The where condition basically checks that each owner table (for person and corporaiton) both have the same hangar number for the planes they have based on one being person, and the other being corporation
 ```
 SELECT
     p.FName AS PersonName,
@@ -498,6 +511,7 @@ WHERE o1.Is_Corporation = 0 AND o2.Is_Corporation = 1;
 ```
 ![Q14 Image](Q14.png)
 ## Q15
+In order to do this, I had to introduce another column in airplane which was "Under Maintenance" which tracked whetehr the maintenance was complete or not. If it was, then its no else yes. So we join all the relevant tables in order to retreieve pilot info and then check Under maintenance is yes to find out which pilots can fly planes which are currently under maintanence.
 ```
 select distinct pilot.PilotID, person.FName, airplane.of_type
 from PLANE_SERVICE inner join airplane on plane_service.reg# = airplane.RegNum
@@ -508,6 +522,7 @@ where airplane.Under_Maintanence = 'Yes'
 ```
 ![Q15 Image](Q15.png)
 ## Q16
+In order to do this we summed the total service hours on a plane which were grouped by the employess names which were extracted from multiple joins which allowed us to access the employees name as well as the corporation they did the work for
 ```
 select person.FName, person.Ssn, CORPORATION.Name, sum(PLANE_SERVICE.hours) as totalHours
 from PERSON inner join EMPLOYEE on person.Ssn = EMPLOYEE.Ssn 
@@ -520,6 +535,7 @@ order by totalHours desc
 ```
 ![Q16 Image](Q16.png)
 ## Q17
+We selected the type and regnum of the airplanes by joining plane service, airplane, and employee and then in the where we checked that either owner is a person (so they are not corporation) or they have been worked on in the day shift using employee shift info
 ```
 select airplane.of_type, airplane.RegNum 
 from airplane inner join OWNERs on OWNERs.OWNERID = airplane.owned_by
@@ -529,6 +545,7 @@ where OWNERs.Is_Corporation = 0 or EMPLOYEE.ShiftInfo = 'Day'
 ```
 ![Q17 Image](Q17.png)
 ## Q18
+This was the hardest query as it was so long due to me having multiple tables of person and corporation. Here I used the WITH command in order to create 2 seperate tables which contained airplanes purchased by persons/corporations in the last month. These two tables were then used in the final query to check for the existance of a record where the corporation purchases had a same plane as person purchasses within the last month using where clause
 ```
 WITH CorporationPurchases AS (
     SELECT 
@@ -566,6 +583,7 @@ WHERE EXISTS (
 ```
 ![Q18 Image](Q18.png)
 ## Q19
+Pretty simple as we join hangar with airplane then count the airplanes whicha are stored in the hangars and group them by the hangar number and location
 ```
 select hangar.number, hangar.location, count(airplane.stored_in) as 'Number of Planes'
 from hangar inner join airplane on hangar.number = airplane.stored_in
@@ -573,6 +591,7 @@ group by hangar.number, hangar.location
 ```
 ![Q19 Image](Q19.png)
 ## Q20
+Again, pretty simlple as we simply join airplane and plane type and then count the oftype colun of airplane table and group it by the plane type models
 ```
 select PLANE_TYPE.Model, count(airplane.of_type) as 'Total number of planes'
 from PLANE_TYPE inner join airplane on PLANE_TYPE.Model = airplane.of_type
@@ -580,6 +599,7 @@ group by PLANE_TYPE.Model
 ```
 ![Q20 Image](Q20.png)
 ## Q21
+In this query, we join plane service with airplane and count the number of reg#s in the plane service table grouped by the airplane reg# in order to see how many services were performed on each plane
 ```
 select airplane.RegNum, airplane.of_type, count(PLANE_SERVICE.Reg#) as 'Services Performed on Each Plane'
 from airplane inner join PLANE_SERVICE on airplane.RegNum = PLANE_SERVICE.Reg#
@@ -587,12 +607,14 @@ group by airplane.RegNum, airplane.of_type
 ```
 ![Q21 Image](Q21.png)
 ## Q22
+NO joins required, we simply get avg salary from function grouped by shiftinfo (Day or Night)
 ```
 select EMPLOYEE.ShiftInfo, avg(EMPLOYEE.Salary) as 'Average Salary According to Shift'
 from EMPLOYEE group by EMPLOYEE.ShiftInfo
 ```
 ![Q22 Image](Q22.png)
 ## Q23
+A case is used to ensure person/corpoation is correctly named, after which left joins are used on airplane and corporation in order to ensure that null values are not omitted as owner table will always have some null values for either person (if it is corporaiton) and vice versa. We count the plane registration numbers and group by owner info to get our result.
 ```
 select
     CASE
@@ -607,6 +629,7 @@ group by OWNERs.Is_Corporation, person.FName, CORPORATION.Name
 ```
 ![Q23 Image](Q23.png)
 ## Q24
+We join the flies and pilot table and count the model of planes grouped by the pilotid in order to get the result
 ```
 select PILOT.PilotID, count(FLIES.model) as 'Can fly N Planes'
 from PILOT inner join FLIES on PILOT.pilotssn = FLIES.pid
@@ -616,7 +639,8 @@ group by PILOT.PilotID
 ## Q25
 ### Query 1:
 >Query to find total amount of salary being paid by airport to employees\
->It is important in order to generate pay slips and calculate expenses etc
+>It is important in order to generate pay slips and calculate expenses etc\
+This was done by selecing the sum of salaries from the employee table
 ```
 select sum(EMPLOYEE.Salary) as 'Total Salary Expense of Airport'
 from EMPLOYEE 
@@ -624,7 +648,8 @@ from EMPLOYEE
 ![Q25.1 Image](Q25.1.png)
 ### Query 2:
 >Query to find total number of maintainence hours worked by each employee\
->It is important for monitoring employee productivity, scheduling work shifts, and determining workloads
+>It is important for monitoring employee productivity, scheduling work shifts, and determining workloads\
+We do this by summing the hours attribute of plane service table from the joined tables of person, planeservice, and group them by employee information
 ```
 SELECT 
     EMPLOYEE.EID, 
@@ -638,7 +663,8 @@ GROUP BY EMPLOYEE.EID, PERSON.FName;
 ![Q25.2 Image](Q25.2.png)
 ### Query 3:
 >Query to find out number of pilots with each restriction\
->This is imporant for managing and assigning pilots according to their qualifications and limitations
+>This is imporant for managing and assigning pilots according to their qualifications and limitations\
+we join the pilot and pilotrestriction table on pilot id and then count the pilotids in the restrcitions table grouped by each restriction
 ```
 select pilot_restrictions.restriction as Restriction, count(pilot.pilotid) as 'Number of Pilots'
 from pilot_restrictions inner join PILOT on PILOT.PilotID = pilot_restrictions.pilotID
@@ -647,7 +673,8 @@ group by pilot_restrictions.restriction
 ![Q25.3 Image](Q25.3.png)
 ### Query 4:
 >Query to find contact information of all non corporation owners\
->This is important to to maintain up-to-date contact information for their individual clients
+>This is important to to maintain up-to-date contact information for their individual clients\
+This is implmeneted by joining owners with person table and displayinng person info where owner isCorpoation = 0
 ```
 SELECT 
     FName AS Name, 
@@ -660,7 +687,8 @@ WHERE o.Is_Corporation = 0;
 ![Q25.4 Image](Q25.4.png)
 ### Query 5:
 >Query to find the airplane models with a capacity greater than a specific value\
->Ths is important to scheduele flights which have a specific capacity requirment to ensure safety 
+>Ths is important to scheduele flights which have a specific capacity requirment to ensure safety\ 
+simply select model and capacity from planetype table where capacity is greater than a specicific value.
 ```
 SELECT 
     Model, 

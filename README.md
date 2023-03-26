@@ -1,5 +1,9 @@
 # DB Assignment 2
 
+## Q1
+
+![ERD](AirportERD.png)
+
 ## Q2
 ```
 CREATE TABLE CORPORATION (

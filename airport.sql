@@ -179,6 +179,8 @@ INSERT INTO EMPLOYEE (EID, Salary, ShiftInfo, Ssn) VALUES
 ('E005', 60000, 'Day', '012-34-5678');
 
 INSERT INTO airplane (RegNum, of_type, purchaseDate, owned_by, stored_in) VALUES
+(1013, 'Bombardier CRJ200', '2023-03-25', 6, 10),
+(1012, 'Bombardier CRJ200', '2023-03-25', 20, 10),
 (1011, 'ATR 72', '2012-12-12', 19, 7),
 (1001, 'Boeing 737', '2021-02-10', 1, 1),
 (1002, 'Airbus A320', '2019-07-15', 2, 2),
@@ -192,6 +194,7 @@ INSERT INTO airplane (RegNum, of_type, purchaseDate, owned_by, stored_in) VALUES
 (1010, 'ATR 72', '2019-12-12', 15, 10);
 
 INSERT INTO PLANE_SERVICE (workcode, dateofService, Reg#, hours, employeeID) VALUES
+(2011, '2023-03-26', 1010, 5, 'E004'),
 (2001, '2023-01-15', 1001, 5, 'E001'),
 (2002, '2023-02-12', 1002, 8, 'E002'),
 (2003, '2023-01-30', 1003, 10, 'E003'),
@@ -266,19 +269,19 @@ PLANE_SERVICE.dateofService > '2023-02-01'
 
 SELECT 
     CASE
-        WHEN o.Is_Corporation = 0 THEN p.FName
-        ELSE c.Name
+        WHEN OWNERs.Is_Corporation = 0 THEN PERSON.FName
+        ELSE CORPORATION.Name
     END AS Name,
     CASE
-        WHEN o.Is_Corporation = 0 THEN p.Phone
-        ELSE c.Phone
+        WHEN OWNERs.Is_Corporation = 0 THEN PERSON.Phone
+        ELSE CORPORATION.Phone
     END AS Phone,
-	a.of_type
-FROM OWNERS o
-LEFT JOIN PERSON p ON o.personID = p.Ssn
-LEFT JOIN CORPORATION c ON o.corporationID = c.Name
-INNER JOIN airplane a ON o.OWNERID = a.owned_by
-WHERE a.purchaseDate >= DATEADD(MONTH, -29, GETDATE());
+	airplane.of_type
+FROM OWNERS 
+LEFT JOIN PERSON  ON OWNERs.personID = PERSON.Ssn
+LEFT JOIN CORPORATION  ON OWNERs.corporationID = CORPORATION.Name
+INNER JOIN airplane  ON OWNERs.OWNERID = airplane.owned_by
+WHERE airplane.purchaseDate >= DATEADD(MONTH, -29, GETDATE());
 
 --Q9
 
@@ -328,33 +331,26 @@ WHERE NOT EXISTS (
 --Q14
 
 SELECT
-    CASE
-        WHEN o.Is_Corporation = 0 THEN p.FName
-        ELSE c.Name
-    END AS OwnerName,
-    CASE
-        WHEN o.Is_Corporation = 0 THEN p.Phone
-        ELSE c.Phone
-    END AS OwnerPhone
-FROM OWNERS o
-LEFT JOIN PERSON p ON o.personID = p.Ssn
-LEFT JOIN CORPORATION c ON o.corporationID = c.Name
-INNER JOIN AIRPLANE a ON o.OWNERID = a.owned_by
-INNER JOIN OWNERS o2 ON a.owned_by = o2.OWNERID AND o2.Is_Corporation = 1
-LEFT JOIN CORPORATION c2 ON o2.corporationID = c2.Name
-INNER JOIN HANGAR h1 ON o.personID = h1.location OR o.corporationID = h1.location
-INNER JOIN HANGAR h2 ON c2.Name = h2.location
-WHERE h1.location = h2.location;
+    p.FName AS PersonName,
+    corp.Name AS CorporationName,
+    h.number AS HangarNumber
+FROM AIRPLANE ap1
+INNER JOIN OWNERS o1 ON ap1.owned_by = o1.OWNERID
+INNER JOIN PERSON p ON o1.personID = p.Ssn
+INNER JOIN HANGAR h ON ap1.stored_in = h.number
+INNER JOIN AIRPLANE ap2 ON h.number = ap2.stored_in
+INNER JOIN OWNERS o2 ON ap2.owned_by = o2.OWNERID
+INNER JOIN CORPORATION corp ON o2.corporationID = corp.Name
+WHERE o1.Is_Corporation = 0 AND o2.Is_Corporation = 1;
 
 --Q15
 
-SELECT DISTINCT p.FName AS PilotName
-FROM PILOT pl
-INNER JOIN PERSON p ON pl.pilotssn = p.Ssn
-INNER JOIN FLIES f ON pl.PilotID = f.pid
-INNER JOIN AIRPLANE a ON f.model = a.of_type
-INNER JOIN PLANE_SERVICE ps ON a.RegNum = ps.Reg#
-WHERE ps.dateofService = (SELECT MAX(dateofService) FROM PLANE_SERVICE WHERE Reg# = a.RegNum);
+select distinct pilot.PilotID, person.FName, airplane.of_type
+from PLANE_SERVICE inner join airplane on plane_service.reg# = airplane.RegNum
+inner join flies on FLIES.model = airplane.of_type
+inner join pilot on FLIES.pid = pilot.pilotssn
+inner join PERSON on PERSON.Ssn = pilot.pilotssn
+where PLANE_SERVICE.dateofService = CAST(GETDATE() AS DATE)
 
 --Q16
 
@@ -377,7 +373,39 @@ where OWNERs.Is_Corporation = 0 or EMPLOYEE.ShiftInfo != 'Day'
 
 --Q18
 
---????? What the fuck is this
+WITH CorporationPurchases AS (
+    SELECT 
+        a.of_type AS PlaneType,
+        a.purchaseDate,
+        o.OWNERID
+    FROM AIRPLANE a
+    INNER JOIN OWNERS o ON a.owned_by = o.OWNERID
+    WHERE o.Is_Corporation = 1
+        AND a.purchaseDate >= DATEADD(month, -1, GETDATE())
+),
+OwnerPlanes AS (
+    SELECT
+        a.RegNum,
+        a.of_type AS PlaneType,
+        a.purchaseDate,
+        o.OWNERID
+    FROM AIRPLANE a
+    INNER JOIN OWNERS o ON a.owned_by = o.OWNERID
+    WHERE o.Is_Corporation = 0
+)
+
+SELECT DISTINCT
+    p.FName AS Name,
+    p.FAddress AS Address
+FROM PERSON p
+INNER JOIN OWNERS o ON p.Ssn = o.personID
+INNER JOIN OwnerPlanes op ON o.OWNERID = op.OWNERID
+WHERE EXISTS (
+    SELECT 1
+    FROM CorporationPurchases cp
+    WHERE cp.PlaneType = op.PlaneType
+        AND cp.purchaseDate >= DATEADD(month, -1, GETDATE())
+);
 
 --Q19
 

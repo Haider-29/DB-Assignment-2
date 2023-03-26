@@ -510,11 +510,9 @@ GROUP BY EMPLOYEE.EID, PERSON.FName;
 >Query to find out number of pilots with each restriction\
 >This is imporant for managing and assigning pilots according to their qualifications and limitations
 ```
-SELECT 
-    Restr AS Restriction, 
-    COUNT(PilotID) AS NumberOfPilots
-FROM PILOT
-GROUP BY Restr;
+select pilot_restrictions.restriction as Restriction, count(pilot.pilotid) as 'Number of Pilots'
+from pilot_restrictions inner join PILOT on PILOT.PilotID = pilot_restrictions.pilotID
+group by pilot_restrictions.restriction
 ```
 ![Q25.3 Image](Q25.3.png)
 ### Query 4:

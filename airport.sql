@@ -420,9 +420,10 @@ group by PILOT.PilotID, pilot.pilotssn
 
 --Q10
 
-SELECT TOP 1 hangar.number, hangar.location, hangar.capacity
-FROM hangar
-ORDER BY hangar.capacity DESC;
+select top 1 hangar.location,hangar.capacity, hangar.capacity - count(airplane.stored_in) as 'Available Space'
+from hangar inner join airplane on hangar.number = airplane.stored_in
+group by hangar.location, hangar.capacity
+order by [Available Space] desc
 
 --Q11
 
@@ -499,7 +500,7 @@ select airplane.of_type, airplane.RegNum
 from airplane inner join OWNERs on OWNERs.OWNERID = airplane.owned_by
 inner join PLANE_SERVICE on airplane.RegNum = PLANE_SERVICE.Reg#
 inner join EMPLOYEE on EMPLOYEE.EID = PLANE_SERVICE.employeeID
-where OWNERs.Is_Corporation = 0 or EMPLOYEE.ShiftInfo != 'Day'
+where OWNERs.Is_Corporation = 0 or EMPLOYEE.ShiftInfo = 'Day'
 
 --Q18
 

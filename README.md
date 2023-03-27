@@ -6,6 +6,19 @@ In this ERD, we are modeling the database for a small airport. There are many en
 
 ![ERD](AirportERD.png)
 
+The diagram below represents a database schema for an aviation organization that manages pilots, employees, airplane types, hangars, airplane maintenance, and airplane ownership. The schema consists of the following tables:
+
+CORPORATION: This table stores information about corporations, including their name, address, and phone number. The primary key is the name of the corporation.
+PERSON: This table stores personal information such as social security number, first name, address, and phone number. The primary key is the social security number (Ssn).
+OWNERS: This table stores information about airplane owners, who can be either a person or a corporation. The primary key is the ownerID. Foreign keys reference the PERSON and CORPORATION tables.
+PILOT: This table stores information about pilots, including their pilot ID, social security number, license number, and restrictions. The primary key is the pilot ID, and a foreign key references the PERSON table.
+EMPLOYEE: This table stores information about employees, including their employee ID, salary, shift information, and social security number. The primary key is the employee ID, and a foreign key references the PERSON table.
+HANGAR: This table stores information about hangars, including their number, capacity, and location. The primary key is the hangar number.
+PLANE_TYPE: This table stores information about airplane types, including the model, capacity, and weight. The primary key is the model.
+FLIES: This table stores information about the airplanes that are flown, including a unique flyID, the pilot ID, and the airplane model.
+
+![RelationalModel](AirportRelationalModel.png)
+
 ## Q2
 All the relevant tables have been created with care for primary keys, foreign keys, not nulls, unique, and all other constraints. A large amount of data around 20 values per table has been inserted in this question.
 ```

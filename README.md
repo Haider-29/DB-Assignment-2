@@ -2,10 +2,16 @@
 
 ## Q1
 
-In this ERD, we are modeling the database for a small airport. There are many entities which are needed for this ERD. We have Persons and Corporations, which form a union with Owner. The person entitiy has two subclasses which are pilot and employee. There are many plane types which are used to specify which planes the airport has. Airplane entity is the center piece of the erd and it is composed of many other entities foreign keys in order to exist such as plane type and owners. Planes are stored in hangars which have been made an entitiy. All of the cardinalities have been explained using min max constraints. Participation constraints have been shown with double lines, primary keys with underlines, and weak entities with double boundary shapes.
-
+### ERD: 
 ![ERD](AirportERD.png)
 
+### ERD Explanation:
+In this ERD, we are modeling the database for a small airport. There are many entities which are needed for this ERD. We have Persons and Corporations, which form a union with Owner. The person entitiy has two subclasses which are pilot and employee. There are many plane types which are used to specify which planes the airport has. Airplane entity is the center piece of the erd and it is composed of many other entities foreign keys in order to exist such as plane type and owners. Planes are stored in hangars which have been made an entitiy. All of the cardinalities have been explained using min max constraints. Participation constraints have been shown with double lines, primary keys with underlines, and weak entities with double boundary shapes.
+
+### Relational Schema:
+![RelationalModel](AirportRelationalModel.png)
+
+### Relational Schema Explanation:
 Given below is the Relational Model for the Airport database. It includes the following tables:
 
 CORPORATION: This table stores information about corporations, including their name, address, and phone number. The primary key is the name of the corporation.
@@ -23,8 +29,6 @@ HANGAR: This table stores information about hangars, including their number, cap
 PLANE_TYPE: This table stores information about airplane types, including the model, capacity, and weight. The primary key is the model.
 
 FLIES: This table stores information about the airplanes that are flown, including a unique flyID, the pilot ID, and the airplane model.
-
-![RelationalModel](AirportRelationalModel.png)
 
 ## Q2
 All the relevant tables have been created with care for primary keys, foreign keys, not nulls, unique, and all other constraints. A large amount of data around 20 values per table has been inserted in this question.
